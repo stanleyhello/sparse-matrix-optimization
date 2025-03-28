@@ -1,10 +1,3 @@
-"""
-CS3C assignment #7, HashMap (HashQP)
-Copyright 2021 Zibin Yang
-Instructor's solution for HashQP
-"""
-
-
 from enum import Enum
 from prime import *
 
@@ -85,6 +78,21 @@ class HashQP:
 
     def __repr__(self):
         return f"{self}\nbuckets={self._buckets}"
+
+    def __iter__(self):
+        for bucket in self._buckets:
+            if bucket.state == Bucket.State.ACTIVE:
+                yield bucket.item
+
+    def __eq__(self, other):
+        if not isinstance(other, HashQP):
+            return False
+        if len(self) != len(other):
+            return False
+        for item in self:
+            if item not in other:
+                return False
+        return True
 
     def _hash(self, item):
         return hash(item) % self._nbuckets
@@ -191,34 +199,11 @@ class HashQP:
             elif bucket.state == Bucket.State.EMPTY:
                 raise KeyError(f"{key} not found")
 
-    ######################################################################
-    # Added for assignment 7
-    ######################################################################
     def find(self, key):
         for bucket_index in self._iter_index(key):
             bucket = self._buckets[bucket_index]
-            # for find(), we want to find ACTIVE and ==item
+
             if bucket.state == Bucket.State.ACTIVE and bucket.item == key:
                 return bucket.item
             elif bucket.state == Bucket.State.EMPTY:
                 raise KeyError(f"{key} not found")
-
-    def __iter__(self):
-        for bucket in self._buckets:
-            if bucket.state == Bucket.State.ACTIVE:
-                yield bucket.item
-
-    def __eq__(self, other):
-        # It's not required that HashQP can be compared with Python set, though
-        # that's nice to have.
-        if not isinstance(other, HashQP):
-            return False
-
-        if len(self) != len(other):
-            return False
-
-        # For all items in self, they should be in other as well.
-        # Note all() is passed a generator expression (not list comprehension),
-        # and is lazy-evaluated/short-circuited, so as soon as one of them is
-        # False it stops, without evaluating the rest.
-        return all(item in other for item in self)

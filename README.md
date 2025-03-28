@@ -17,23 +17,24 @@ This will run performance comparisons using the custom data structures implement
 ## Project Structure
 ```bash
 .
-├── performance_tests.py               # Benchmarking entry point
-├── sparse_matrix.py                   # Sparse matrix implementation
-├── sparse_dict.py                     # Sparse representation using a dictionary
-├── sparse_list.py                     # Sparse representation using a list
-├── sparse_hash.py                     # Sparse representation using hashing
-├── hashmap.py                         # Custom hashmap implementation
-├── hashmap_solution.py                # Provided or reference hashmap solution
-├── hashmap_test.py                    # Tests for hashmap
-├── hashqp.py                          # Hashing with quadratic probing
-├── hashqp_solution.py                 # Reference solution for hashqp
-├── linkedlist.py                      # Singly linked list implementation
-├── matrix_multiplication.py          # Matrix multiplication using custom structures
-├── matrix_multiplication_test.py     # Tests for matrix multiplication
-├── basic_tests.py                     # Basic validation tests
-├── prime.py                           # Prime number utilities (likely for hashing)
-├── sparse_matrix_test.py             # Tests for sparse matrix functionality
-├── .idea/, __pycache__, .venv        # Auto-generated files (can be ignored)
+├── README.md                      # Project overview and instructions
+├── .gitignore                     # Git rules for ignored files/folders
+├── performance_tests.py          # Benchmarking entry point
+├── basic_tests.py                # General validation tests
+
+├── Data Structures/
+│   ├── hashmap.py                # Custom hashmap implementation
+│   ├── hashqp.py                 # Hashing with quadratic probing
+│   ├── linkedlist.py             # Singly linked list implementation
+│   ├── prime.py                  # Prime number utils (for hashing)
+│   ├── sparse_dict.py           # Sparse matrix using dictionary
+│   ├── sparse_hash.py           # Sparse matrix using hash table
+│   ├── sparse_linkedlist.py     # Sparse matrix using linked list
+│   ├── sparse_list.py           # Sparse matrix using list
+
+├── .venv/                        # Virtual environment (ignored)
+├── __pycache__/                  # Python bytecode cache (ignored)
+├── .idea/                        # IDE config (ignored)
 
 ```
 ## Testing

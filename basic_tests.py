@@ -11,9 +11,6 @@ from sparse_hash import *
 # from sparse_dict import *
 
 import unittest
-import numpy
-import scipy
-import time
 
 DENSITY = 0.01
 
