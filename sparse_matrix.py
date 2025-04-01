@@ -41,7 +41,7 @@ class MatrixEntry:
             return self.column == other
 
 
-class SparseMatrix:
+class SparseMatrixNew:
     def __init__(self, nrows, ncols, default_value):
         self._validate_num_rows_cols(nrows, ncols)
         self._nrows = nrows
@@ -57,6 +57,7 @@ class SparseMatrix:
     @property
     def ncols(self):
         return self._ncols
+
     def clear(self):
         self.rows_list = [OrderedLinkedList() for _ in range(self._nrows)]
 
@@ -65,31 +66,27 @@ class SparseMatrix:
             raise TypeError("number of rows should be int")
         if not isinstance(ncols, int):
             raise TypeError("number of columns should be int")
-        if nrows <= 0:
-            raise IndexError("number of rows and columns must be positive")
-        if ncols <= 0:
+        if nrows <= 0 or ncols <= 0:
             raise IndexError("number of rows and columns must be positive")
 
     def _validate_row_index(self, index):
         if not isinstance(index, int):
             raise TypeError("row index should be int")
-
         if index < 0 or index >= self._nrows:
             raise IndexError(f"row index {index} is invalid")
 
     def _validate_col_index(self, index):
         if not isinstance(index, int):
             raise TypeError("column index should be int")
-
         if index < 0 or index >= self._ncols:
             raise IndexError(f"column index {index} is invalid")
 
     def get(self, row, col):
         self._validate_row_index(row)
         self._validate_col_index(col)
-        row = self.rows_list[row]
+        row_list = self.rows_list[row]
         try:
-            return row.find(col).value
+            return row_list.find(col).value
         except KeyError:
             return self._default_value
 
@@ -97,18 +94,18 @@ class SparseMatrix:
         self._validate_row_index(row)
         self._validate_col_index(col)
 
-        row = self.rows_list[row]
+        row_list = self.rows_list[row]
 
         try:
-            cell = row.find(col)
+            cell = row_list.find(col)
             if new_value == self._default_value:
-                row.remove(cell)
+                row_list.remove(cell)
             else:
                 cell.value = new_value
         except KeyError:
             if new_value != self._default_value:
                 entry = MatrixEntry(new_value, col)
-                row.add(entry)
+                row_list.add(entry)
 
     def get_row(self, row):
         self._validate_row_index(row)
@@ -148,3 +145,22 @@ class SparseMatrix:
             row_values = [str(o) for o in self.get_row(i)]
             rows.append("  ".join(row_values))
         return "\n".join(rows)
+
+
+def mulmat(a, b):
+    a_nrows = len(a)
+    a_ncols = len(a[0])
+    b_nrows = len(b)
+    b_ncols = len(b[0])
+
+    if a_ncols != b_nrows:
+        raise ValueError("Undefined product")
+
+    result = [[0 for _ in range(b_ncols)] for _ in range(a_nrows)]
+
+    for i in range(a_nrows):
+        for j in range(b_ncols):
+            for k in range(b_nrows):
+                result[i][j] += a[i][k] * b[k][j]
+
+    return result

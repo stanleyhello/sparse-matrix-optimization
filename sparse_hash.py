@@ -2,7 +2,7 @@
 Sparse Matrix using HashMap
 """
 
-from sparse_linkedlist import *
+from sparse_matrix import *
 from hashmap import *
 
 

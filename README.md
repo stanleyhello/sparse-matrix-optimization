@@ -1,7 +1,7 @@
 # Sparse Matrix Speed Optimization Project
 
 This project explores and benchmarks various data structures for sparse matrix representation and other algorithmic operations in Python. It includes implementations of hashmaps, linked lists, sparse matrices, and performance tests.
-
+https://www.youtube.com/watch?v=VbN12C21xuc
 ## How to Run
 
 Make sure you have **Python 3.8+** installed.
@@ -29,7 +29,7 @@ This will run performance comparisons using the custom data structures implement
 │   ├── prime.py                  # Prime number utils (for hashing)
 │   ├── sparse_dict.py           # Sparse matrix using dictionary
 │   ├── sparse_hash.py           # Sparse matrix using hash table
-│   ├── sparse_linkedlist.py     # Sparse matrix using linked list
+│   ├── sparse_matrix.py     # Sparse matrix using linked list
 │   ├── sparse_list.py           # Sparse matrix using list
 
 ├── .venv/                        # Virtual environment (ignored)

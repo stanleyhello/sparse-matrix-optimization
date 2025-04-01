@@ -1,67 +1,107 @@
-"""
-Test File for
-Sparse Matrix with Python lists (sparse_list),
-Sparse Matrix with my custom hash maps (sparse_hash),
-Sparse Matrix with Python dicts (sparse_dict).
-Uncomment the import that you want to test!
-"""
-
-# from sparse_list import *
-from sparse_hash import *
-# from sparse_dict import *
-
+import importlib
 import unittest
-import numpy
-import scipy
+import numpy as np
+import scipy.sparse
 import time
+import sys
 
 DENSITY = 0.01
 
+import importlib
+import sys
 
-class SparseMatrixMulTestCase(unittest.TestCase):
-    print(f"Matrix Density {DENSITY * 100}%")
+def choose_module():
+    print("Let's test performance of various sparse matrices!")
+    print(f"Currently testing at {DENSITY * 100}% matrix density.")
+    print("Choose which sparse matrix implementation to test:")
+    print("1: Sparse Matrix with linked lists")
+    print("2: Sparse Matrix with Python lists")
+    print("3: Sparse Matrix with hash maps")
+    print("4: Sparse Matrix with Python dicts")
+    choice = input("Enter your choice (1-4): ").strip()
+
+    module_mapping = {
+        "1": "sparse_linkedlist",
+        "2": "sparse_list",
+        "3": "sparse_hash",
+        "4": "sparse_dict"
+    }
+
+    description_mapping = {
+        "1": "Sparse Matrix with linked lists",
+        "2": "Sparse Matrix with Python lists",
+        "3": "Sparse Matrix with hash maps",
+        "4": "Sparse Matrix with Python dicts"
+    }
+
+    if choice in module_mapping:
+        print(f"You selected: {description_mapping[choice]}")
+        return importlib.import_module(module_mapping[choice])
+    else:
+        print("Invalid choice. Exiting.")
+        sys.exit(1)
+
+# Dynamically import the selected module.
+sparse_module = choose_module()
+
+# Assign the necessary classes and functions from the imported module.
+SparseMatrixMul = sparse_module.SparseMatrixMul
+SparseMatrixNew = sparse_module.SparseMatrixNew
+mulmat = sparse_module.mulmat
+
+
+# Define test cases using unittest.
+class SparseMatrixTestCase(unittest.TestCase):
+    def print_header(self, title):
+        print(f"\n{'=' * 60}")
+        print(f"{title:^60}")
+        print(f"{'=' * 60}")
+        print(f"{'Matrix Size':<20}{'Time (seconds)':<20}")
+        print(f"{'-' * 60}")
+
+    def generate_random_matrices(self, n):
+        a = scipy.sparse.random(n, n, density=DENSITY, dtype=np.uint8).toarray().tolist()
+        b = scipy.sparse.random(n, n, density=DENSITY, dtype=np.uint8).toarray().tolist()
+        return a, b
 
     def testPerformanceSparseMatMul(self):
-        print("SparseMatrixMul.__matmul__")
-        for n in range(10, 100, 10):
-            sm_numpy_a = scipy.sparse.random(n, n, density=DENSITY, dtype=numpy.uint8).toarray()
-            sm_numpy_a = sm_numpy_a.tolist()
-            sm_numpy_b = scipy.sparse.random(n, n, density=DENSITY, dtype=numpy.uint8).toarray()
-            sm_numpy_b = sm_numpy_b.tolist()
+        self.print_header("SparseMatrixMul.__matmul__ Performance")
+        for n in list(range(10, 100, 10)) + list(range(100, 600, 100)):
+            a_list, b_list = self.generate_random_matrices(n)
 
             A = SparseMatrixMul(n, n)
-            for i in range(len(sm_numpy_a)):
-                for j in range(len(sm_numpy_a[0])):
-                    A.set(i, j, sm_numpy_a[i][j])
             B = SparseMatrixNew(n, n, 0)
-            for i in range(len(sm_numpy_b)):
-                for j in range(len(sm_numpy_b[0])):
-                    B.set(i, j, sm_numpy_b[i][j])
+            for i in range(n):
+                for j in range(n):
+                    A.set(i, j, a_list[i][j])
+                    B.set(i, j, b_list[i][j])
 
             start = time.perf_counter()
-            A.__matmul__(B)
+            _ = A @ B
             duration = time.perf_counter() - start
-            print(f"size: {n} - time: {duration:.08f}")
+            print(f"{n:<20}{duration:.08f}")
 
-        for n in range(100, 1000, 100):
-            sm_numpy_a = scipy.sparse.random(n, n, density=DENSITY, dtype=numpy.uint8).toarray()
-            sm_numpy_a = sm_numpy_a.tolist()
-            sm_numpy_b = scipy.sparse.random(n, n, density=DENSITY, dtype=numpy.uint8).toarray()
-            sm_numpy_b = sm_numpy_b.tolist()
-
-            A = SparseMatrixMul(n, n)
-            for i in range(len(sm_numpy_a)):
-                for j in range(len(sm_numpy_a[0])):
-                    A.set(i, j, sm_numpy_a[i][j])
-            B = SparseMatrixNew(n, n, 0)
-            for i in range(len(sm_numpy_b)):
-                for j in range(len(sm_numpy_b[0])):
-                    B.set(i, j, sm_numpy_b[i][j])
+    def testPerformanceMulMat(self):
+        self.print_header("mulmat() Function Performance")
+        for n in list(range(10, 100, 10)) + list(range(100, 600, 100)):
+            a_list, b_list = self.generate_random_matrices(n)
 
             start = time.perf_counter()
-            A.__matmul__(B)
+            _ = mulmat(a_list, b_list)
             duration = time.perf_counter() - start
-            print(f"size: {n} - time: {duration:.08f}")
+            print(f"{n:<20}{duration:.08f}")
+
+    def testPerformanceNumpy(self):
+        self.print_header("NumPy matmul Performance")
+        for n in list(range(10, 100, 10)) + list(range(100, 600, 100)):
+            a = scipy.sparse.random(n, n, density=DENSITY, dtype=np.uint8).toarray()
+            b = scipy.sparse.random(n, n, density=DENSITY, dtype=np.uint8).toarray()
+
+            start = time.perf_counter()
+            _ = np.matmul(a, b)
+            duration = time.perf_counter() - start
+            print(f"{n:<20}{duration:.08f}")
+
 
     def testSquareMatrices(self):
         a = [
@@ -80,30 +120,11 @@ class SparseMatrixMulTestCase(unittest.TestCase):
         B.set(0, 0, 7)
         B.set(0, 1, 2)
         B.set(1, 1, 2)
-
         normal_result = mulmat(a, b)
         product = A.__matmul__(B)
-
-        sparse_result = []
-        for i in range(product.nrows):
-            row_lst = [o for o in product.get_row(i)]
-            sparse_result.append(row_lst)
-        print(sparse_result)
-        #
+        sparse_result = [list(product.get_row(i)) for i in range(product.nrows)]
         self.assertEqual(normal_result, sparse_result)
 
-    def testStuff(self):
-        B = SparseMatrixNew(3, 3, 0)
-        B.set(0, 2, 5)
-        B.set(0, 0, 7)
-        B.set(0, 1, 2)
-        B.set(1, 1, 2)
-
-        row = B._get_row_dict(0)
-        for key in row:
-            print(key)
-        if 0 in row:
-            print("yes")
     def testRectangularMatrices(self):
         a = [
             [6, 6, 8],
@@ -114,42 +135,32 @@ class SparseMatrixMulTestCase(unittest.TestCase):
             [2, 2],
             [0, 1]
         ]
-
         A = SparseMatrixMul(2, 3)
         A.set(0, 0, 6)
         A.set(0, 1, 6)
         A.set(0, 2, 8)
         A.set(1, 0, 1)
         A.set(1, 2, 5)
-
         B = SparseMatrixNew(3, 2, 0)
         B.set(0, 0, 9)
         B.set(0, 1, 4)
         B.set(1, 0, 2)
         B.set(1, 1, 2)
         B.set(2, 1, 1)
-
         normal_result = mulmat(a, b)
         product = A.__matmul__(B)
-        sparse_result = []
-        for i in range(product.nrows):
-            row_lst = [o for o in product.get_row(i)]
-            sparse_result.append(row_lst)
-
+        sparse_result = [list(product.get_row(i)) for i in range(product.nrows)]
         self.assertEqual(normal_result, sparse_result)
 
     def testLargeMatrices(self):
-
-        sm_numpy_a = scipy.sparse.random(10, 10, density=0.1, dtype=numpy.uint8).toarray()
-        sm_numpy_a = sm_numpy_a.tolist()
+        sm_numpy_a = scipy.sparse.random(10, 10, density=0.1, dtype=np.uint8).toarray().tolist()
 
         A = SparseMatrixMul(10, 10)
         for i in range(len(sm_numpy_a)):
             for j in range(len(sm_numpy_a[0])):
                 A.set(i, j, sm_numpy_a[i][j])
 
-        sm_numpy_b = scipy.sparse.random(10, 10, density=0.1, dtype=numpy.uint8).toarray()
-        sm_numpy_b = sm_numpy_b.tolist()
+        sm_numpy_b = scipy.sparse.random(10, 10, density=0.1, dtype=np.uint8).toarray().tolist()
 
         B = SparseMatrixNew(10, 10, 0)
         for i in range(len(sm_numpy_b)):
@@ -157,64 +168,24 @@ class SparseMatrixMulTestCase(unittest.TestCase):
                 B.set(i, j, sm_numpy_b[i][j])
 
         mulmat_result = mulmat(sm_numpy_a, sm_numpy_b)
-
         product = A.__matmul__(B)
-        sparse_result = []
-        for i in range(product.nrows):
-            row_lst = [o for o in product.get_row(i)]
-            sparse_result.append(row_lst)
-
-        sm_numpy_a = numpy.array(sm_numpy_a)
-        sm_numpy_b = numpy.array(sm_numpy_b)
-        numpy_result = numpy.matmul(sm_numpy_a, sm_numpy_b)
-        numpy_result = numpy_result.tolist()
+        sparse_result = [list(product.get_row(i)) for i in range(product.nrows)]
+        sm_numpy_a_arr = np.array(sm_numpy_a)
+        sm_numpy_b_arr = np.array(sm_numpy_b)
+        numpy_result = np.matmul(sm_numpy_a_arr, sm_numpy_b_arr).tolist()
 
         self.assertEqual(numpy_result, mulmat_result)
         self.assertEqual(numpy_result, sparse_result)
 
-    def testPerformanceMulMat(self):
-        print("mulmat()")
-        for n in range(10, 100, 10):
-            sm_numpy_a = scipy.sparse.random(n, n, density=DENSITY, dtype=numpy.uint8).toarray()
-            sm_numpy_a = sm_numpy_a.tolist()
-            sm_numpy_b = scipy.sparse.random(n, n, density=DENSITY, dtype=numpy.uint8).toarray()
-            sm_numpy_b = sm_numpy_b.tolist()
 
-            start = time.perf_counter()
-            mulmat(sm_numpy_a, sm_numpy_b)
-            duration = time.perf_counter() - start
-            print(f"size: {n} - time: {duration:.08f}")
+def main():
 
-        for n in range(100, 1000, 100):
-            sm_numpy_a = scipy.sparse.random(n, n, density=DENSITY, dtype=numpy.uint8).toarray()
-            sm_numpy_a = sm_numpy_a.tolist()
-            sm_numpy_b = scipy.sparse.random(n, n, density=DENSITY, dtype=numpy.uint8).toarray()
-            sm_numpy_b = sm_numpy_b.tolist()
+    print("No tests are running automatically. To run tests, relaunch the file with '--run-tests'.")
 
-            start = time.perf_counter()
-            mulmat(sm_numpy_a, sm_numpy_b)
-            duration = time.perf_counter() - start
-            print(f"size: {n} - time: {duration:.08f}")
-
-
-    def testPerformanceNumpy(self):
-        print("numpy.matmul")
-        for n in range(10, 100, 10):
-            sm_numpy_a = scipy.sparse.random(n, n, density=DENSITY, dtype=numpy.uint8).toarray()
-            sm_numpy_b = scipy.sparse.random(n, n, density=DENSITY, dtype=numpy.uint8).toarray()
-
-            start = time.perf_counter()
-            numpy_result = numpy.matmul(sm_numpy_a, sm_numpy_b)
-            duration = time.perf_counter() - start
-            print(f"size: {n} - time: {duration:.08f}")
-
-        for n in range(100, 1000, 100):
-            sm_numpy_a = scipy.sparse.random(n, n, density=DENSITY, dtype=numpy.uint8).toarray()
-            sm_numpy_b = scipy.sparse.random(n, n, density=DENSITY, dtype=numpy.uint8).toarray()
-
-            start = time.perf_counter()
-            numpy_result = numpy.matmul(sm_numpy_a, sm_numpy_b)
-            duration = time.perf_counter() - start
-            print(f"size: {n} - time: {duration:.08f}")
-
-
+if __name__ == "__main__":
+    # Run the tests only if '--run-tests' is provided as a command-line argument.
+    if "--run-tests" in sys.argv:
+        sys.argv.remove("--run-tests")
+        unittest.main()
+    else:
+        main()
